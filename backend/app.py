@@ -53,7 +53,17 @@ def mirror(name):
 
 @app.route("/contacts", methods=['GET'])
 def get_all_contacts():
-    return create_response({"contacts": db.get('contacts')})
+    param = request.args.get('hobby')
+    contacts = db.get('contacts')
+    if (param is None):
+        return create_response({"contacts": contacts})
+    hobbies = []
+    for contact in contacts:
+        if (contact.get("hobby") == param):
+            hobbies.append(contact)
+    if (len(hobbies) == 0):
+        return create_response(status=404, message="No contact with this hobby exists")
+    return create_response({"content": hobbies})
 
 @app.route("/shows/<id>", methods=['DELETE'])
 def delete_show(id):
@@ -65,6 +75,53 @@ def delete_show(id):
 
 # TODO: Implement the rest of the API here!
 
+@app.route("/contacts/<id>", methods=['GET'])
+def getById(id):
+    contact = db.getById('contacts', int(id))
+    if contact is None:
+        return create_response(status=404, message="No contact with this id exists")
+    return create_response(contact)
+
+@app.route("/contacts", methods=['POST'])
+def createContact():
+    input = request.json
+    if input is None:
+         return create_response(status = 422, message = "You are missing: input")
+    error = ""
+    name = input.get("name")
+    flag = 0
+    if name is None:
+        flag = 1
+        error = error + " name "
+    nickname = input.get("nickname")
+    if nickname is None:
+        flag = 1
+        error = error + " name "
+    hobby = input.get("hobby")
+    if hobby is None:
+        flag = 1
+        error = error + " hobby "
+    if flag == 1:
+        return create_response(status = 422, message = "You are missing:" + error)
+    new_contact = db.create("contacts", input)
+    return create_response(new_contact, status = 201)
+
+@app.route("/contacts/<id>", methods=['PUT'])
+def updateContact(id):
+    input = request.json
+    contact = db.getById('contacts', int(id))
+    if contact is None:
+        return create_response(status=404, message="No contact with this id exists")
+    if input is None:
+        return create_response(status = 422, message = "You are missing: input")
+    namep = input.get("name")
+    hobbyp = input.get("hobby")
+    if not (namep is None):
+        contact.update(name = namep)
+    if not (hobbyp is None):
+        contact.update(hobby = hobbyp)
+    newContact = (db.updateById("contacts", id, contact))
+    return create_response(contact, status = 201)
 """
 ~~~~~~~~~~~~ END API ~~~~~~~~~~~~
 """

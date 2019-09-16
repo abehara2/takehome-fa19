@@ -2,10 +2,11 @@ import React, { Component } from 'react'
 
 class App extends Component {
   // YOUR CODE GOES BELOW
-  
-  render() {
+
+    render() {
     return (
-      <div/> 
+
+        <div>{this.props.name}</div>
     )
   }
 }
